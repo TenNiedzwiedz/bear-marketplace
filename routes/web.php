@@ -10,3 +10,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/design-cheatsheet', function () {
+    return Inertia::render('DesignCheatsheet');
+});

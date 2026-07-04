@@ -31,6 +31,8 @@ php artisan inertia:start-ssr  # Run the Node SSR server (needs a built SSR bund
 - **Database is MariaDB, not SQLite.** `DB_CONNECTION=mariadb` (see `.env.example`). You need a running MariaDB before migrating/testing locally against a real DB. The test suite (`phpunit.xml`) overrides to `DB_DATABASE=testing`.
 - **Database-backed infrastructure.** Sessions, cache, and the queue all default to the `database` driver. Running the queue matters — `composer dev` starts a `queue:listen` worker for this reason. Cache/jobs/sessions tables come from the migrations in `database/migrations/`.
 - **Local services via Sail.** `compose.yaml` defines the dev stack: the app (`laravel.test`), **MariaDB 11**, and **Mailpit** (SMTP on 1025, dashboard on 8025). Run with `./vendor/bin/sail up`.
+- **Domain model.** Marketplace entities live in `app/Models/`: `User` (with `account_type`), `CompanyProfile` (1—1, only for company accounts), `Category` (self-referential tree via `parent_id`), `Listing` (belongs to a user + leaf category), `ListingImage`, `Report`. Statuses are **PHP enums in `app/Enums/`** (`AccountType`, `ListingStatus`, `ReportStatus`) cast on the models — treat them as the source of truth, and use `Listing::published()` (status = active) for anything public-facing. See `docs/zalozenia-projektowe.md` for the design rationale.
+- **Seeders are development-only.** `DatabaseSeeder` bails out under `app()->isProduction()` and orchestrates one seeder per table (`CategorySeeder` → `UserSeeder` → `CompanyProfileSeeder` → `ListingSeeder` → `ListingImageSeeder` → `ReportSeeder`); they assume a fresh DB (`php artisan migrate:fresh --seed`) and generate fake data (accounts use password `password`). Do not rely on them in any non-dev environment.
 
 ## Conventions
 

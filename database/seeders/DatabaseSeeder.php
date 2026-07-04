@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -11,15 +10,26 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Seed the application's database with development data.
+     *
+     * These seeders create fake accounts, listings and reports for local work
+     * only — they must never run against production.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        if (app()->isProduction()) {
+            $this->command?->warn('Development seeders skipped: application is in production.');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            return;
+        }
+
+        $this->call([
+            CategorySeeder::class,
+            UserSeeder::class,
+            CompanyProfileSeeder::class,
+            ListingSeeder::class,
+            ListingImageSeeder::class,
+            ReportSeeder::class,
         ]);
     }
 }

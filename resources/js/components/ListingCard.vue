@@ -1,4 +1,5 @@
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import BearSeal from './BearSeal.vue';
 import SellerBadge from './SellerBadge.vue';
 
@@ -17,6 +18,7 @@ defineProps({
     sellerType: { type: String, required: true }, // 'firma' | 'prywatna'
     code: { type: String, default: null },
     image: { type: String, default: null },
+    href: { type: String, default: null },
     thumbBackground: {
         type: String,
         default: 'linear-gradient(135deg, #2b3d33, #c9821f)',
@@ -34,7 +36,10 @@ defineProps({
         </div>
         <div class="card__body">
             <p class="card__cat">{{ category }}</p>
-            <h3 class="card__title">{{ title }}</h3>
+            <h3 class="card__title">
+                <Link v-if="href" :href="href" class="card__link">{{ title }}</Link>
+                <template v-else>{{ title }}</template>
+            </h3>
             <p class="card__meta">{{ location }}<template v-if="postedAt"> · {{ postedAt }}</template></p>
             <div class="card__foot">
                 <div class="card__seller">
@@ -49,6 +54,7 @@ defineProps({
 
 <style scoped>
 .card {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 6px;
@@ -57,6 +63,20 @@ defineProps({
     flex-direction: column;
     box-shadow: var(--shadow);
     transition: transform 0.16s ease;
+}
+/* Whole-card link: the title anchor stretches over the card. */
+.card__link {
+    color: inherit;
+    text-decoration: none;
+}
+.card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+.card:hover .card__link {
+    color: var(--accent-text);
 }
 .card:hover {
     transform: translateY(-4px);

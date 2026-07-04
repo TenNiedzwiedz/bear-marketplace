@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AccountType;
+use App\Enums\ListingStatus;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Support\ListingCardPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,6 +72,86 @@ class ListingController extends Controller
                 'sort' => $sort,
             ],
         ]);
+    }
+
+    public function show(Listing $listing): Response
+    {
+        // Only active listings are public (see docs/zalozenia-projektowe.md, §5).
+        abort_unless($listing->status === ListingStatus::Active, 404);
+
+        $listing->load(['user.companyProfile', 'category.parent', 'images']);
+
+        return Inertia::render('Listings/Show', [
+            'listing' => $this->presentDetail($listing),
+            'seller' => $this->presentSeller($listing),
+            'related' => $this->relatedListings($listing),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function presentDetail(Listing $listing): array
+    {
+        $category = $listing->category;
+
+        return [
+            'id' => $listing->id,
+            'title' => $listing->title,
+            'description' => $listing->description,
+            'price' => ListingCardPresenter::formatPrice($listing->price),
+            'isNegotiable' => $listing->is_negotiable,
+            'location' => $listing->location,
+            'postedAt' => $listing->published_at?->locale('pl')->diffForHumans(),
+            'postedAtFull' => $listing->published_at?->locale('pl')->isoFormat('D MMMM YYYY, HH:mm'),
+            'code' => 'OGL-'.$listing->id,
+            'images' => $listing->images->map(fn ($image) => ListingCardPresenter::imageUrl($image->path))->all(),
+            'category' => [
+                'name' => $category?->name,
+                'slug' => $category?->slug,
+                'parent' => $category?->parent ? [
+                    'name' => $category->parent->name,
+                    'slug' => $category->parent->slug,
+                ] : null,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function presentSeller(Listing $listing): array
+    {
+        $user = $listing->user;
+
+        return [
+            'name' => $user->name,
+            'type' => $user->isCompany() ? 'firma' : 'prywatna',
+            'memberSince' => $user->created_at?->locale('pl')->isoFormat('MMMM YYYY'),
+            'company' => $user->isCompany() && $user->companyProfile ? [
+                'name' => $user->companyProfile->company_name,
+                'city' => $user->companyProfile->city,
+                'taxId' => $user->companyProfile->tax_id,
+            ] : null,
+        ];
+    }
+
+    /**
+     * Up to four other active listings from the same category.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function relatedListings(Listing $listing): Collection
+    {
+        return Listing::query()
+            ->published()
+            ->where('category_id', $listing->category_id)
+            ->whereKeyNot($listing->id)
+            ->with(['user:id,name,account_type', 'category:id,name', 'images'])
+            ->latest('published_at')
+            ->take(4)
+            ->get()
+            ->map(ListingCardPresenter::present(...));
     }
 
     /**

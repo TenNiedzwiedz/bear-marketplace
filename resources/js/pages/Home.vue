@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import SiteHeader from '../components/SiteHeader.vue';
 import SiteFooter from '../components/SiteFooter.vue';
 import SearchField from '../components/SearchField.vue';
@@ -67,6 +67,10 @@ const steps = [
 
 const query = ref('');
 const popular = ['Rowery', 'Elektronika', 'Dom i ogród', 'Motoryzacja'];
+
+function searchListings() {
+    router.get('/ogloszenia', query.value ? { q: query.value } : {});
+}
 </script>
 
 <template>
@@ -85,10 +89,15 @@ const popular = ['Rowery', 'Elektronika', 'Dom i ogród', 'Motoryzacja'];
                         Ogłoszenia od osób prywatnych i firm spotykają się tu w jednym,
                         spokojnym miejscu. Zacznij od wyszukania — albo wystaw własne.
                     </p>
-                    <SearchField v-model="query" size="lg" @submit="() => {}" />
+                    <SearchField v-model="query" size="lg" @submit="searchListings" />
                     <div class="hero__popular">
                         <span class="hero__popular-label">Popularne:</span>
-                        <a v-for="p in popular" :key="p" href="#kategorie" class="hero__chip">{{ p }}</a>
+                        <a
+                            v-for="p in popular"
+                            :key="p"
+                            :href="`/ogloszenia?q=${encodeURIComponent(p)}`"
+                            class="hero__chip"
+                        >{{ p }}</a>
                     </div>
                 </div>
 
@@ -121,7 +130,7 @@ const popular = ['Rowery', 'Elektronika', 'Dom i ogród', 'Motoryzacja'];
                         :name="c.name"
                         :icon="glyphFor(c.slug)"
                         :count="c.count"
-                        href="#swieze"
+                        :href="`/ogloszenia?category=${c.slug}`"
                     />
                 </div>
             </SectionBlock>
@@ -150,7 +159,7 @@ const popular = ['Rowery', 'Elektronika', 'Dom i ogród', 'Motoryzacja'];
                         />
                     </div>
                     <div class="listings__more">
-                        <AppButton href="#swieze" variant="secondary">Zobacz wszystkie ogłoszenia</AppButton>
+                        <AppButton href="/ogloszenia" variant="secondary">Zobacz wszystkie ogłoszenia</AppButton>
                     </div>
                 </template>
             </SectionBlock>

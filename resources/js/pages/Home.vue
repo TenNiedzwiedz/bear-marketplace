@@ -5,40 +5,35 @@ import SiteHeader from '../components/SiteHeader.vue';
 import SiteFooter from '../components/SiteFooter.vue';
 import SearchField from '../components/SearchField.vue';
 import AppButton from '../components/AppButton.vue';
-import AppTag from '../components/AppTag.vue';
 import BearSeal from '../components/BearSeal.vue';
 import SectionBlock from '../components/SectionBlock.vue';
 import CategoryTile from '../components/CategoryTile.vue';
-import CategoryGlyph from '../components/CategoryGlyph.vue';
 import ListingCard from '../components/ListingCard.vue';
 
 /**
- * Props default to mock data so the page renders standalone; a controller can
- * later pass real categories/listings/stats without any template changes.
+ * Data comes from HomeController; the defaults let the page render standalone
+ * (e.g. in isolation) and document the expected shape.
  */
 defineProps({
     categories: {
         type: Array,
         default: () => [
-            { name: 'Motoryzacja', icon: 'motoryzacja', count: '3 120' },
-            { name: 'Rowery', icon: 'rowery', count: '1 480' },
-            { name: 'Elektronika', icon: 'elektronika', count: '2 640' },
-            { name: 'Dom i ogród', icon: 'dom', count: '1 950' },
-            { name: 'Moda', icon: 'moda', count: '2 210' },
-            { name: 'Sport i hobby', icon: 'sport', count: '980' },
-            { name: 'Dla dzieci', icon: 'dzieci', count: '1 130' },
-            { name: 'Zwierzęta', icon: 'zwierzeta', count: '420' },
+            { name: 'Motoryzacja', slug: 'motoryzacja', count: 3120 },
+            { name: 'Nieruchomości', slug: 'nieruchomosci', count: 860 },
+            { name: 'Elektronika', slug: 'elektronika', count: 2640 },
+            { name: 'Dom i ogród', slug: 'dom-i-ogrod', count: 1950 },
+            { name: 'Moda', slug: 'moda', count: 2210 },
+            { name: 'Sport i hobby', slug: 'sport-i-hobby', count: 980 },
+            { name: 'Dla dzieci', slug: 'dla-dzieci', count: 1130 },
+            { name: 'Zwierzęta', slug: 'zwierzeta', count: 420 },
         ],
     },
     listings: {
         type: Array,
         default: () => [
-            { category: 'Dom i ogród', title: 'Kosiarka spalinowa Stihl, model 2024', price: '1 890 zł', location: 'Poznań, Grunwald', postedAt: 'dziś, 8:05', sellerName: 'Zielony Ogród Sp. z o.o.', sellerType: 'firma', code: 'OGL-9142', icon: 'dom', accent: '#566b4d' },
-            { category: 'Rowery / Górskie', title: 'Rower górski Kross Level 5.0, rozm. L', price: '2 300 zł', location: 'Katowice, Ligota', postedAt: 'dziś, 10:22', sellerName: 'Tomasz W.', sellerType: 'prywatna', code: 'OGL-9138', icon: 'rowery', accent: '#c9821f' },
-            { category: 'Elektronika / Telefony', title: 'iPhone 13 128 GB, bez rys, komplet', price: '1 650 zł', location: 'Warszawa, Mokotów', postedAt: 'wczoraj, 19:40', sellerName: 'Anna P.', sellerType: 'prywatna', code: 'OGL-9101', icon: 'elektronika', accent: '#8a3140' },
-            { category: 'Dom i ogród / Meble', title: 'Fotel biurowy ergonomiczny, nowy', price: '640 zł', location: 'Łódź, Śródmieście', postedAt: 'wczoraj, 14:10', sellerName: 'Meble Kowalski', sellerType: 'firma', code: 'OGL-9077', icon: 'dom', accent: '#c9821f' },
-            { category: 'Dla dzieci / Wózki', title: 'Wózek 3w1 Riko, kompletny', price: '800 zł', location: 'Gdańsk, Wrzeszcz', postedAt: 'wczoraj, 12:33', sellerName: 'Karolina M.', sellerType: 'prywatna', code: 'OGL-9064', icon: 'dzieci', accent: '#566b4d' },
-            { category: 'Motoryzacja / Opony', title: 'Opony zimowe 205/55 R16, 4 szt.', price: '720 zł', location: 'Kraków, Nowa Huta', postedAt: 'przedwczoraj', sellerName: 'AutoSerwis Nowak', sellerType: 'firma', code: 'OGL-9048', icon: 'motoryzacja', accent: '#8a3140' },
+            { id: 1, category: 'Ogród', title: 'Kosiarka spalinowa Stihl, model 2024', price: '1 890 zł', location: 'Poznań, Grunwald', postedAt: '2 godziny temu', sellerName: 'Zielony Ogród Sp. z o.o.', sellerType: 'firma', code: 'OGL-9142', image: null },
+            { id: 2, category: 'Rowery', title: 'Rower górski Kross Level 5.0, rozm. L', price: '2 300 zł', location: 'Katowice, Ligota', postedAt: '4 godziny temu', sellerName: 'Tomasz W.', sellerType: 'prywatna', code: 'OGL-9138', image: null },
+            { id: 3, category: 'Telefony', title: 'iPhone 13 128 GB, bez rys, komplet', price: '1 650 zł', location: 'Warszawa, Mokotów', postedAt: 'wczoraj', sellerName: 'Anna P.', sellerType: 'prywatna', code: 'OGL-9101', image: null },
         ],
     },
     stats: {
@@ -46,6 +41,23 @@ defineProps({
         default: () => ({ listings: '12 480', cities: '320' }),
     },
 });
+
+/** Map a category slug to its monoline glyph; unknowns fall back in CategoryGlyph. */
+const categoryIcons = {
+    motoryzacja: 'motoryzacja',
+    nieruchomosci: 'nieruchomosci',
+    elektronika: 'elektronika',
+    'dom-i-ogrod': 'dom',
+    moda: 'moda',
+    'sport-i-hobby': 'sport',
+    'dla-dzieci': 'dzieci',
+    zwierzeta: 'zwierzeta',
+    uslugi: 'uslugi',
+};
+
+function glyphFor(slug) {
+    return categoryIcons[slug] ?? 'default';
+}
 
 const steps = [
     { title: 'Znajdź albo wystaw', text: 'Przeglądaj ogłoszenia w swojej okolicy albo dodaj własne w dwie minuty.' },
@@ -55,10 +67,6 @@ const steps = [
 
 const query = ref('');
 const popular = ['Rowery', 'Elektronika', 'Dom i ogród', 'Motoryzacja'];
-
-function thumbBackground(accent) {
-    return `linear-gradient(135deg, #21302a, ${accent})`;
-}
 </script>
 
 <template>
@@ -104,14 +112,14 @@ function thumbBackground(accent) {
                 id="kategorie"
                 eyebrow="Kategorie"
                 title="Zacznij od tego, czego szukasz"
-                note="Osiem głównych działów. Liczba przy każdym pokazuje, ile ogłoszeń czeka teraz."
+                note="Główne działy serwisu. Liczba przy każdym pokazuje, ile ogłoszeń czeka teraz."
             >
                 <div class="cat-grid">
                     <CategoryTile
                         v-for="c in categories"
-                        :key="c.name"
+                        :key="c.slug"
                         :name="c.name"
-                        :icon="c.icon"
+                        :icon="glyphFor(c.slug)"
                         :count="c.count"
                         href="#swieze"
                     />
@@ -129,7 +137,7 @@ function thumbBackground(accent) {
                     <div class="listings">
                         <ListingCard
                             v-for="l in listings"
-                            :key="l.code"
+                            :key="l.id"
                             :category="l.category"
                             :title="l.title"
                             :price="l.price"
@@ -138,12 +146,8 @@ function thumbBackground(accent) {
                             :seller-name="l.sellerName"
                             :seller-type="l.sellerType"
                             :code="l.code"
-                            :thumb-background="thumbBackground(l.accent)"
-                        >
-                            <template #thumb>
-                                <CategoryGlyph :name="l.icon" />
-                            </template>
-                        </ListingCard>
+                            :image="l.image"
+                        />
                     </div>
                     <div class="listings__more">
                         <AppButton href="#swieze" variant="secondary">Zobacz wszystkie ogłoszenia</AppButton>

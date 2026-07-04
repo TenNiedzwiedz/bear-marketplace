@@ -14,6 +14,12 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
+                bunny('Bricolage Grotesque', {
+                    weights: [600, 800],
+                }),
+                bunny('Space Mono', {
+                    weights: [400, 700],
+                }),
             ],
         }),
         vue({

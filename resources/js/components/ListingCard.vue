@@ -5,7 +5,7 @@ import SellerBadge from './SellerBadge.vue';
 /**
  * ListingCard — one ogłoszenie. The composition where the whole system meets:
  * price tag, trust seal, and a seller badge whose colour reads at a glance.
- * Pass a photo through the #thumb slot; the default is a branded placeholder.
+ * Pass an `image` URL for the photo, or use the #thumb slot / branded default.
  */
 defineProps({
     category: { type: String, required: true },
@@ -16,6 +16,7 @@ defineProps({
     sellerName: { type: String, required: true },
     sellerType: { type: String, required: true }, // 'firma' | 'prywatna'
     code: { type: String, default: null },
+    image: { type: String, default: null },
     thumbBackground: {
         type: String,
         default: 'linear-gradient(135deg, #2b3d33, #c9821f)',
@@ -26,7 +27,8 @@ defineProps({
 <template>
     <article class="card">
         <div class="card__thumb" :style="{ background: thumbBackground }">
-            <slot name="thumb" />
+            <img v-if="image" :src="image" :alt="title" class="card__photo" loading="lazy" />
+            <slot v-else name="thumb" />
             <span class="card__price">{{ price }}</span>
             <BearSeal class="card__stamp" :size="46" :ring="false" aria-hidden="true" />
         </div>
@@ -71,6 +73,13 @@ defineProps({
 .card__thumb :slotted(svg) {
     width: 44%;
     height: 44%;
+}
+.card__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .card__stamp {
     position: absolute;

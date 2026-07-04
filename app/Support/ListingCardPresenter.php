@@ -21,6 +21,7 @@ class ListingCardPresenter
     {
         return [
             'id' => $listing->id,
+            'url' => "/ogloszenia/{$listing->id}",
             'title' => $listing->title,
             'category' => $listing->category?->name,
             'price' => self::formatPrice($listing->price),
@@ -33,7 +34,7 @@ class ListingCardPresenter
         ];
     }
 
-    private static function formatPrice(?string $price): string
+    public static function formatPrice(?string $price): string
     {
         if ($price === null) {
             return 'do uzgodnienia';
@@ -45,7 +46,7 @@ class ListingCardPresenter
         return number_format($value, $decimals, ',', ' ').' zł';
     }
 
-    private static function imageUrl(?string $path): ?string
+    public static function imageUrl(?string $path): ?string
     {
         if ($path === null) {
             return null;

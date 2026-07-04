@@ -6,13 +6,18 @@ defineProps({
     modelValue: { type: String, default: '' },
     placeholder: { type: String, default: 'Czego szukasz? — np. rower górski' },
     label: { type: String, default: 'Szukaj ogłoszeń' },
+    size: {
+        type: String,
+        default: 'md',
+        validator: (v) => ['md', 'lg'].includes(v),
+    },
 });
 
 defineEmits(['update:modelValue', 'submit']);
 </script>
 
 <template>
-    <form class="search" role="search" @submit.prevent="$emit('submit')">
+    <form class="search" :class="`search--${size}`" role="search" @submit.prevent="$emit('submit')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4.3-4.3" stroke-linecap="round" />
@@ -57,5 +62,18 @@ defineEmits(['update:modelValue', 'submit']);
 }
 .search input::placeholder {
     color: var(--text-soft);
+}
+
+/* Hero variant */
+.search--lg {
+    padding: 1rem 1.15rem;
+    border-radius: 5px;
+}
+.search--lg svg {
+    width: 22px;
+    height: 22px;
+}
+.search--lg input {
+    font-size: 1.08rem;
 }
 </style>

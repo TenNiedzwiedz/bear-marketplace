@@ -1,4 +1,5 @@
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import BearSeal from './BearSeal.vue';
 import AppButton from './AppButton.vue';
 
@@ -18,9 +19,9 @@ import AppButton from './AppButton.vue';
             </a>
 
             <nav class="site-nav" aria-label="Główna nawigacja">
-                <a href="#kategorie">Kategorie</a>
-                <a href="#swieze">Ogłoszenia</a>
-                <a href="#jak-to-dziala">Jak to działa</a>
+                <Link href="/ogloszenia">Ogłoszenia</Link>
+                <a href="/#kategorie">Kategorie</a>
+                <a href="/#jak-to-dziala">Jak to działa</a>
             </nav>
 
             <div class="site-header__actions">

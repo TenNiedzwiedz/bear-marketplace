@@ -38,6 +38,7 @@
     --seal-muzzle: #eae1ce;
     --accent: #c9821f;
     --accent-ink: #4a3410;
+    --accent-text: #9a600a; /* honey that stays legible as text/icons on light */
     --seller-priv: #566b4d;
     --seller-firma: #8a3140;
     --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
@@ -56,6 +57,7 @@
         --seal-muzzle: #151f1a;
         --accent: #e7a63c;
         --accent-ink: #2a1c04;
+        --accent-text: #e7a63c; /* bright honey already reads on the dark ground */
         --seller-priv: #8ca37e;
         --seller-firma: #ce7180;
         --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);
@@ -74,6 +76,7 @@
     --seal-muzzle: #eae1ce;
     --accent: #c9821f;
     --accent-ink: #4a3410;
+    --accent-text: #9a600a; /* honey that stays legible as text/icons on light */
     --seller-priv: #566b4d;
     --seller-firma: #8a3140;
     --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
@@ -91,6 +94,7 @@
     --seal-muzzle: #151f1a;
     --accent: #e7a63c;
     --accent-ink: #2a1c04;
+    --accent-text: #e7a63c;
     --seller-priv: #8ca37e;
     --seller-firma: #ce7180;
     --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);

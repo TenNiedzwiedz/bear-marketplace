@@ -156,6 +156,7 @@ function searchListings() {
                             :seller-type="l.sellerType"
                             :code="l.code"
                             :image="l.image"
+                            :href="l.url"
                         />
                     </div>
                     <div class="listings__more">

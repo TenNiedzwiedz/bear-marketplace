@@ -182,6 +182,7 @@ function ogloszenia(n) {
                         :seller-type="l.sellerType"
                         :code="l.code"
                         :image="l.image"
+                        :href="l.url"
                     />
                 </div>
 

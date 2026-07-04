@@ -7,6 +7,7 @@ use Inertia\Inertia;
 
 Route::get('/', HomeController::class);
 Route::get('/ogloszenia', [ListingController::class, 'index'])->name('listings.index');
+Route::get('/ogloszenia/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/design-cheatsheet', function () {
     return Inertia::render('DesignCheatsheet');

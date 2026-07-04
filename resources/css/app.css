@@ -3,7 +3,118 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* =============================================================
+   Bear Marketplace — design tokens
+   Full reference: /design-cheatsheet
+   ============================================================= */
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Type roles */
+    --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* Fixed brand palette — utilities: bg-honey, text-pine, border-moss, … */
+    --color-pine: #21302a;
+    --color-paper: #eae1ce;
+    --color-honey: #c9821f;
+    --color-moss: #566b4d;
+    --color-cranberry: #8a3140;
+    --color-taupe: #5f5648;
+}
+
+/* Semantic, theme-aware tokens. Components read these, never raw hex.
+   Precedence: data-theme (explicit toggle) always wins over the OS media query. */
+:root {
+    --bg: #eae1ce;
+    --surface: #f3ecdd;
+    --surface-2: #e2d7c0;
+    --text: #21302a;
+    --text-soft: #5f5648;
+    --line: rgba(33, 48, 42, 0.16);
+    --line-strong: rgba(33, 48, 42, 0.34);
+    --seal: #21302a;
+    --seal-muzzle: #eae1ce;
+    --accent: #c9821f;
+    --accent-ink: #4a3410;
+    --seller-priv: #566b4d;
+    --seller-firma: #8a3140;
+    --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #151f1a;
+        --surface: #1e2b24;
+        --surface-2: #27362d;
+        --text: #ece3d0;
+        --text-soft: #a79c86;
+        --line: rgba(236, 227, 208, 0.15);
+        --line-strong: rgba(236, 227, 208, 0.32);
+        --seal: #e8ce92;
+        --seal-muzzle: #151f1a;
+        --accent: #e7a63c;
+        --accent-ink: #2a1c04;
+        --seller-priv: #8ca37e;
+        --seller-firma: #ce7180;
+        --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);
+    }
+}
+
+:root[data-theme='light'] {
+    --bg: #eae1ce;
+    --surface: #f3ecdd;
+    --surface-2: #e2d7c0;
+    --text: #21302a;
+    --text-soft: #5f5648;
+    --line: rgba(33, 48, 42, 0.16);
+    --line-strong: rgba(33, 48, 42, 0.34);
+    --seal: #21302a;
+    --seal-muzzle: #eae1ce;
+    --accent: #c9821f;
+    --accent-ink: #4a3410;
+    --seller-priv: #566b4d;
+    --seller-firma: #8a3140;
+    --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
+}
+
+:root[data-theme='dark'] {
+    --bg: #151f1a;
+    --surface: #1e2b24;
+    --surface-2: #27362d;
+    --text: #ece3d0;
+    --text-soft: #a79c86;
+    --line: rgba(236, 227, 208, 0.15);
+    --line-strong: rgba(236, 227, 208, 0.32);
+    --seal: #e8ce92;
+    --seal-muzzle: #151f1a;
+    --accent: #e7a63c;
+    --accent-ink: #2a1c04;
+    --seller-priv: #8ca37e;
+    --seller-firma: #ce7180;
+    --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+:where(a) {
+    color: inherit;
+}
+
+:where(:focus-visible) {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
 }

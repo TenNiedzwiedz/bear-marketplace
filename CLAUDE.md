@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This is an early-stage **Laravel 13 / PHP 8.3** application named `bear-marketplace`. It is currently a near-vanilla Laravel skeleton: the only routes are `/` (welcome view) and the `/up` health check, and the only domain model is `User`. There is no marketplace domain (products, listings, orders, etc.) implemented yet — expect to be building it out. `tests/` still contains only the framework's example tests.
+This is an early-stage **Laravel 13 / PHP 8.3** application named `bear-marketplace`. The frontend stack is **Inertia.js + Vue 3 + Vite with SSR** (a "monolith SPA" — no separate REST API for the app's own frontend; controllers return `Inertia::render(...)` and pass data as page props). It is otherwise a near-vanilla skeleton: the only routes are `/` (renders the `Welcome` Inertia page) and the `/up` health check, and the only domain model is `User`. There is no marketplace domain (listings, categories, company profiles, etc.) implemented yet — expect to be building it out. See `docs/zalozenia-projektowe.md` for the project's design assumptions (in Polish). `tests/` still contains only the framework's example tests.
 
 ## Commands
 
@@ -19,11 +19,14 @@ php artisan test tests/Feature/Foo.php # Run one test file
 ./vendor/bin/pint --dirty      # Format only uncommitted changes
 php artisan tinker             # REPL for poking at models / the container
 npm run dev                    # Vite dev server only (if not using `composer dev`)
+npm run build                  # Build BOTH the client and SSR bundles (`vite build && vite build --ssr`)
+php artisan inertia:start-ssr  # Run the Node SSR server (needs a built SSR bundle); required for SSR in production
 ```
 
 ## Architecture notes
 
-- **Laravel 13 slim structure.** There is no `app/Http/Kernel.php` or `app/Console/Kernel.php`. Middleware, exception handling, and routing are configured in `bootstrap/app.php`; service providers are registered in `bootstrap/providers.php`. Register new middleware/exception behavior there, not in a Kernel.
+- **Laravel 13 slim structure.** There is no `app/Http/Kernel.php` or `app/Console/Kernel.php`. Middleware, exception handling, and routing are configured in `bootstrap/app.php`; service providers are registered in `bootstrap/providers.php`. Register new middleware/exception behavior there, not in a Kernel. The `web` group appends `HandleInertiaRequests` (add data shared with every page in its `share()` method).
+- **Inertia + Vue + SSR frontend.** Pages are Vue SFCs in `resources/js/pages/` (lowercase `pages` — matches `config/inertia.php` and matters on case-sensitive filesystems). A controller returns `Inertia::render('Welcome', [...props])` and the matching `resources/js/pages/Welcome.vue` receives them as props. Entry points: `resources/js/app.js` (client) and `resources/js/ssr.js` (SSR); the root Blade template is `resources/views/app.blade.php`. SSR is enabled by default (`INERTIA_SSR_ENABLED`); the SSR bundle builds to `bootstrap/ssr/` (gitignored) and is served by `php artisan inertia:start-ssr` on port 13714. Feature tests can assert against Inertia responses with `AssertableInertia`.
 - **API requests already render JSON errors.** `bootstrap/app.php` sets exceptions to render as JSON for `api/*` paths, but there is no `routes/api.php` yet — add one via `->withRouting(api: ...)` (or `php artisan install:api`) when building API endpoints.
 - **Database is MariaDB, not SQLite.** `DB_CONNECTION=mariadb` (see `.env.example`). You need a running MariaDB before migrating/testing locally against a real DB. The test suite (`phpunit.xml`) overrides to `DB_DATABASE=testing`.
 - **Database-backed infrastructure.** Sessions, cache, and the queue all default to the `database` driver. Running the queue matters — `composer dev` starts a `queue:listen` worker for this reason. Cache/jobs/sessions tables come from the migrations in `database/migrations/`.
@@ -32,5 +35,5 @@ npm run dev                    # Vite dev server only (if not using `composer de
 ## Conventions
 
 - **Tests use PHPUnit 12, not Pest** — write `extends TestCase` class-based tests under `tests/Unit` or `tests/Feature` (the two configured suites). Note `laravel/pail` and the Pest plugin are present, but the suite is PHPUnit.
-- **Frontend is Tailwind CSS v4 + Vite 8.** Tailwind is configured through the `@tailwindcss/vite` plugin (no `tailwind.config.js`); entry points are `resources/css/app.css` and `resources/js/app.js`, bundled by `vite.config.js`.
+- **Frontend is Vue 3 (SFCs) + Tailwind CSS v4 + Vite 8.** Build UI as Inertia pages/components under `resources/js/`, not Blade views (`resources/views/` holds only the single `app.blade.php` shell). Tailwind is configured through the `@tailwindcss/vite` plugin (no `tailwind.config.js`); `vite.config.js` wires the `@vitejs/plugin-vue` plugin plus the client and SSR inputs.
 - Code style is enforced by **Pint** (Laravel preset). Match the existing formatting; run Pint rather than hand-formatting.

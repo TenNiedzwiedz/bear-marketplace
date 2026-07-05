@@ -1,12 +1,15 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import BearSeal from './BearSeal.vue';
 import AppButton from './AppButton.vue';
 
 /**
  * SiteHeader — persistent top bar. Keeps the seller track ("Wystaw ogłoszenie")
- * always within reach, alongside browse and account entry points.
+ * always within reach, and adapts the account controls to the auth state.
  */
+const page = usePage();
+const user = computed(() => page.props.auth?.user ?? null);
 </script>
 
 <template>
@@ -25,7 +28,13 @@ import AppButton from './AppButton.vue';
             </nav>
 
             <div class="site-header__actions">
-                <a href="/logowanie" class="login">Zaloguj się</a>
+                <template v-if="user">
+                    <Link href="/panel" class="account">{{ user.name }}</Link>
+                    <Link href="/wyloguj" method="post" as="button" type="button" class="logout">Wyloguj</Link>
+                </template>
+                <template v-else>
+                    <Link href="/logowanie" class="login">Zaloguj się</Link>
+                </template>
                 <AppButton href="/wystaw" variant="primary">Wystaw ogłoszenie</AppButton>
             </div>
         </div>
@@ -94,15 +103,36 @@ import AppButton from './AppButton.vue';
     gap: 1rem;
     margin-left: auto;
 }
-.login {
+.login,
+.account {
     font-size: 0.95rem;
     font-weight: 600;
     text-decoration: none;
     color: var(--text);
     white-space: nowrap;
 }
-.login:hover {
+.account {
+    max-width: 16ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.login:hover,
+.account:hover {
     color: var(--accent-text);
+}
+.logout {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.logout:hover {
+    color: var(--text);
 }
 
 @media (max-width: 860px) {
@@ -112,7 +142,8 @@ import AppButton from './AppButton.vue';
 }
 @media (max-width: 560px) {
     .brand__sub,
-    .login {
+    .login,
+    .account {
         display: none;
     }
 }

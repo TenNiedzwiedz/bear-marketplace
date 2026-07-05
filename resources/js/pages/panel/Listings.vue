@@ -49,7 +49,7 @@ defineProps({
                         <td class="cell-actions">
                             <div class="cell-actions__inner">
                                 <Link v-if="l.isActive" :href="l.url" class="rowlink">Zobacz</Link>
-                                <button type="button" class="rowlink">Edytuj</button>
+                                <Link :href="`/ogloszenia/${l.id}/edytuj`" class="rowlink">Edytuj</Link>
                             </div>
                         </td>
                     </tr>

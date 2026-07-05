@@ -7,12 +7,10 @@ import { STATUS_META, STATUS_ORDER } from '../../lib/listingStatus';
 
 const props = defineProps({
     user: { type: Object, required: true },
-    konto: { type: String, default: null },
     overview: { type: Object, required: true },
 });
 
 const greeting = computed(() => (props.user.type === 'firma' ? 'Dzień dobry' : 'Cześć'));
-const listingsHref = computed(() => (props.konto ? `/panel/ogloszenia?konto=${props.konto}` : '/panel/ogloszenia'));
 
 // Portfolio bar.
 const segments = computed(() =>
@@ -51,7 +49,7 @@ const lastPoint = computed(() => pts.value[pts.value.length - 1] ?? null);
 <template>
     <Head title="Panel — przegląd" />
 
-    <PanelLayout :user="user" :konto="konto">
+    <PanelLayout :user="user">
         <header class="greet">
             <h1 class="greet__title">{{ greeting }}, {{ user.greetingName }}.</h1>
             <p class="greet__sub">Oto jak stoją Twoje ogłoszenia na Bear.</p>
@@ -116,7 +114,7 @@ const lastPoint = computed(() => pts.value[pts.value.length - 1] ?? null);
         </div>
 
         <div class="more">
-            <AppButton :href="listingsHref" variant="secondary">Przejdź do ogłoszeń</AppButton>
+            <AppButton href="/panel/ogloszenia" variant="secondary">Przejdź do ogłoszeń</AppButton>
         </div>
     </PanelLayout>
 </template>

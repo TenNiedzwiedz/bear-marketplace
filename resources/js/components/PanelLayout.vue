@@ -14,7 +14,6 @@ import AppButton from './AppButton.vue';
  */
 defineProps({
     user: { type: Object, required: true },
-    konto: { type: String, default: null }, // demo account preview, kept across sections
     title: { type: String, default: null },
 });
 
@@ -50,7 +49,7 @@ const nav = [
                     <Link
                         v-for="item in nav"
                         :key="item.path"
-                        :href="konto ? `${item.path}?konto=${konto}` : item.path"
+                        :href="item.path"
                         class="side__link"
                         :class="{ 'is-active': path === item.path }"
                         :aria-current="path === item.path ? 'page' : undefined"
@@ -58,23 +57,6 @@ const nav = [
                 </nav>
 
                 <AppButton href="/wystaw" variant="primary" class="side__cta">Wystaw ogłoszenie</AppButton>
-
-                <div class="side__preview">
-                    <p class="side__preview-label">Podgląd konta</p>
-                    <div class="switch">
-                        <Link
-                            :href="`${path}?konto=prywatna`"
-                            class="switch__btn"
-                            :class="{ 'is-active': user.type === 'prywatna' }"
-                        >Prywatne</Link>
-                        <Link
-                            :href="`${path}?konto=firma`"
-                            class="switch__btn"
-                            :class="{ 'is-active': user.type === 'firma' }"
-                        >Firmowe</Link>
-                    </div>
-                    <p class="side__demo">Dane demonstracyjne</p>
-                </div>
             </aside>
 
             <div class="content">
@@ -167,48 +149,6 @@ const nav = [
 .side__cta {
     width: 100%;
     justify-content: center;
-}
-.side__preview {
-    border-top: 1px solid var(--line);
-    padding-top: 1.1rem;
-}
-.side__preview-label,
-.side__demo {
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-soft);
-}
-.side__preview-label {
-    margin: 0 0 0.6rem;
-}
-.side__demo {
-    margin: 0.6rem 0 0;
-    opacity: 0.75;
-}
-.switch {
-    display: flex;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 3px;
-    gap: 2px;
-}
-.switch__btn {
-    flex: 1;
-    text-align: center;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    padding: 0.4rem 0.5rem;
-    border-radius: 999px;
-    text-decoration: none;
-    color: var(--text-soft);
-}
-.switch__btn.is-active {
-    background: var(--accent);
-    color: var(--accent-ink);
 }
 
 /* Content */

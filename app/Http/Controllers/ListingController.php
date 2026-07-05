@@ -6,10 +6,14 @@ use App\Enums\AccountType;
 use App\Enums\ListingStatus;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\User;
 use App\Support\ListingCardPresenter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -86,6 +90,166 @@ class ListingController extends Controller
             'seller' => $this->presentSeller($listing),
             'related' => $this->relatedListings($listing),
         ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Listings/Form', [
+            'listing' => null,
+            'categories' => $this->categoryOptions(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $this->validatedListing($request);
+        $publish = $data['action'] === 'publish';
+
+        // No auth yet — the listing is owned by a demo account. TODO: use the
+        // authenticated user and a policy once login exists.
+        $owner = User::query()->firstOrFail();
+
+        $listing = $owner->listings()->create([
+            'category_id' => $data['category_id'],
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'price' => $data['price'],
+            'currency' => 'PLN',
+            'is_negotiable' => $request->boolean('is_negotiable'),
+            'location' => $data['location'],
+            'status' => $publish ? ListingStatus::Active : ListingStatus::Draft,
+            'published_at' => $publish ? now() : null,
+        ]);
+
+        $this->storeImages($listing, $request);
+
+        return $publish
+            ? redirect()->route('listings.show', $listing)
+            : redirect()->route('panel.listings');
+    }
+
+    public function edit(Listing $listing): Response
+    {
+        $listing->load('images');
+
+        return Inertia::render('Listings/Form', [
+            'listing' => [
+                'id' => $listing->id,
+                'title' => $listing->title,
+                'description' => $listing->description,
+                'category_id' => $listing->category_id,
+                'price' => $listing->price !== null ? (float) $listing->price : null,
+                'is_negotiable' => $listing->is_negotiable,
+                'location' => $listing->location,
+                'images' => $listing->images->map(fn ($image) => [
+                    'id' => $image->id,
+                    'url' => ListingCardPresenter::imageUrl($image->path),
+                ])->all(),
+            ],
+            'categories' => $this->categoryOptions(),
+        ]);
+    }
+
+    public function update(Request $request, Listing $listing): RedirectResponse
+    {
+        $data = $this->validatedListing($request);
+        $publish = $data['action'] === 'publish';
+
+        $listing->update([
+            'category_id' => $data['category_id'],
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'price' => $data['price'],
+            'is_negotiable' => $request->boolean('is_negotiable'),
+            'location' => $data['location'],
+            'status' => $publish ? ListingStatus::Active : ListingStatus::Draft,
+            'published_at' => $publish ? ($listing->published_at ?? now()) : $listing->published_at,
+        ]);
+
+        if (! empty($data['remove_images'])) {
+            $listing->images()->whereIn('id', $data['remove_images'])->get()->each(function ($image): void {
+                if (! Str::startsWith($image->path, ['http://', 'https://'])) {
+                    Storage::disk('public')->delete($image->path);
+                }
+                $image->delete();
+            });
+        }
+
+        $this->storeImages($listing, $request);
+
+        return $publish
+            ? redirect()->route('listings.show', $listing)
+            : redirect()->route('panel.listings');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedListing(Request $request): array
+    {
+        // An empty price means "do uzgodnienia", not the number zero.
+        $request->merge(['price' => $request->input('price') === '' ? null : $request->input('price')]);
+
+        return $request->validate([
+            'title' => ['required', 'string', 'max:120'],
+            'category_id' => [
+                'required', 'integer', Rule::exists('categories', 'id'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (Category::whereKey($value)->whereHas('children')->exists()) {
+                        $fail('Wybierz konkretną podkategorię.');
+                    }
+                },
+            ],
+            'description' => ['required', 'string', 'max:5000'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'is_negotiable' => ['boolean'],
+            'location' => ['required', 'string', 'max:120'],
+            'images' => ['nullable', 'array', 'max:8'],
+            'images.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'remove_images' => ['nullable', 'array'],
+            'remove_images.*' => ['integer'],
+            'action' => ['required', Rule::in(['publish', 'draft'])],
+        ]);
+    }
+
+    private function storeImages(Listing $listing, Request $request): void
+    {
+        if (! $request->hasFile('images')) {
+            return;
+        }
+
+        $position = (int) ($listing->images()->max('position') ?? -1);
+
+        foreach ($request->file('images') as $file) {
+            $listing->images()->create([
+                'path' => $file->store('listings', 'public'),
+                'position' => ++$position,
+            ]);
+        }
+    }
+
+    /**
+     * Categories grouped by top-level parent, offering only leaf options.
+     *
+     * @return list<array{label: string, options: list<array{value: int, label: string}>}>
+     */
+    private function categoryOptions(): array
+    {
+        return Category::query()
+            ->whereNull('parent_id')
+            ->orderBy('position')
+            ->with(['children' => fn ($q) => $q->orderBy('position')])
+            ->get()
+            ->map(fn (Category $parent) => [
+                'label' => $parent->name,
+                'options' => $parent->children->map(fn (Category $child) => [
+                    'value' => $child->id,
+                    'label' => $child->name,
+                ])->all(),
+            ])
+            ->filter(fn (array $group) => count($group['options']) > 0)
+            ->values()
+            ->all();
     }
 
     /**

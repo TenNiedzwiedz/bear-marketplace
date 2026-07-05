@@ -68,6 +68,7 @@ class HomeController extends Controller
     }
 
     /**
+     *
      * @return array{listings: string, cities: string}
      */
     private function stats(): array

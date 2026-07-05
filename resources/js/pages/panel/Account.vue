@@ -6,14 +6,13 @@ import SellerBadge from '../../components/SellerBadge.vue';
 
 defineProps({
     user: { type: Object, required: true },
-    konto: { type: String, default: null },
 });
 </script>
 
 <template>
     <Head title="Panel — konto" />
 
-    <PanelLayout :user="user" :konto="konto" title="Konto">
+    <PanelLayout :user="user" title="Konto">
         <div class="account">
             <div class="card">
                 <h2 class="card__subtitle">Dane konta</h2>

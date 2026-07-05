@@ -6,14 +6,13 @@ import EmptyState from '../../components/EmptyState.vue';
 
 defineProps({
     user: { type: Object, required: true },
-    konto: { type: String, default: null },
 });
 </script>
 
 <template>
     <Head title="Panel — wiadomości" />
 
-    <PanelLayout :user="user" :konto="konto" title="Wiadomości">
+    <PanelLayout :user="user" title="Wiadomości">
         <template #actions>
             <AppTag>Wkrótce</AppTag>
         </template>

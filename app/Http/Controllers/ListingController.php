@@ -6,12 +6,12 @@ use App\Enums\AccountType;
 use App\Enums\ListingStatus;
 use App\Models\Category;
 use App\Models\Listing;
-use App\Models\User;
 use App\Support\ListingCardPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -105,11 +105,7 @@ class ListingController extends Controller
         $data = $this->validatedListing($request);
         $publish = $data['action'] === 'publish';
 
-        // No auth yet — the listing is owned by a demo account. TODO: use the
-        // authenticated user and a policy once login exists.
-        $owner = User::query()->firstOrFail();
-
-        $listing = $owner->listings()->create([
+        $listing = $request->user()->listings()->create([
             'category_id' => $data['category_id'],
             'title' => $data['title'],
             'description' => $data['description'],
@@ -130,6 +126,8 @@ class ListingController extends Controller
 
     public function edit(Listing $listing): Response
     {
+        Gate::authorize('update', $listing);
+
         $listing->load('images');
 
         return Inertia::render('Listings/Form', [
@@ -152,6 +150,8 @@ class ListingController extends Controller
 
     public function update(Request $request, Listing $listing): RedirectResponse
     {
+        Gate::authorize('update', $listing);
+
         $data = $this->validatedListing($request);
         $publish = $data['action'] === 'publish';
 

@@ -57,6 +57,6 @@ class RegisteredUserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('panel.overview');
+        return redirect()->route('panel.overview')->with('success', 'Konto założone. Witaj w Bear!');
     }
 }

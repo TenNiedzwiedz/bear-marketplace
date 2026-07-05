@@ -8,7 +8,6 @@ import EmptyState from '../../components/EmptyState.vue';
 
 defineProps({
     user: { type: Object, required: true },
-    konto: { type: String, default: null },
     listings: { type: Object, required: true }, // Laravel paginator
 });
 </script>
@@ -16,7 +15,7 @@ defineProps({
 <template>
     <Head title="Panel — moje ogłoszenia" />
 
-    <PanelLayout :user="user" :konto="konto" title="Moje ogłoszenia">
+    <PanelLayout :user="user" title="Moje ogłoszenia">
         <template #actions>
             <span class="count">{{ listings.total }} łącznie</span>
         </template>

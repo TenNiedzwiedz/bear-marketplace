@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import PanelLayout from '../../components/PanelLayout.vue';
 import AppButton from '../../components/AppButton.vue';
 import StatusPill from '../../components/StatusPill.vue';
@@ -10,6 +10,21 @@ defineProps({
     user: { type: Object, required: true },
     listings: { type: Object, required: true }, // Laravel paginator
 });
+
+function end(listing) {
+    router.patch(`/ogloszenia/${listing.id}/zakoncz`, {}, { preserveScroll: true });
+}
+
+function reactivate(listing) {
+    router.patch(`/ogloszenia/${listing.id}/wznow`, {}, { preserveScroll: true });
+}
+
+function destroy(listing) {
+    router.delete(`/ogloszenia/${listing.id}`, {
+        preserveScroll: true,
+        onBefore: () => confirm(`Usunąć „${listing.title}"? Tej operacji nie można cofnąć.`),
+    });
+}
 </script>
 
 <template>
@@ -37,7 +52,10 @@ defineProps({
                             <div class="cell-listing">
                                 <span class="thumb" :style="l.image ? { backgroundImage: `url(${l.image})` } : null"></span>
                                 <span class="cell-listing__text">
-                                    <span class="cell-listing__title">{{ l.title }}</span>
+                                    <span class="cell-listing__title">
+                                        <Link v-if="l.isActive" :href="l.url" class="cell-listing__link">{{ l.title }}</Link>
+                                        <template v-else>{{ l.title }}</template>
+                                    </span>
                                     <span class="cell-listing__cat">{{ l.category }}</span>
                                 </span>
                             </div>
@@ -47,8 +65,11 @@ defineProps({
                         <td class="mono muted">{{ l.postedAt }}</td>
                         <td class="cell-actions">
                             <div class="cell-actions__inner">
-                                <Link v-if="l.isActive" :href="l.url" class="rowlink">Zobacz</Link>
+                                <button v-if="l.status === 'active'" type="button" class="rowlink" @click="end(l)">Zakończ</button>
+                                <button v-else-if="l.status === 'ended'" type="button" class="rowlink" @click="reactivate(l)">Wznów</button>
+                                <button v-else-if="l.status === 'draft'" type="button" class="rowlink" @click="reactivate(l)">Opublikuj</button>
                                 <Link :href="`/ogloszenia/${l.id}/edytuj`" class="rowlink">Edytuj</Link>
+                                <button type="button" class="rowlink rowlink--danger" @click="destroy(l)">Usuń</button>
                             </div>
                         </td>
                     </tr>
@@ -148,6 +169,13 @@ defineProps({
     font-weight: 600;
     line-height: 1.2;
 }
+.cell-listing__link {
+    color: inherit;
+    text-decoration: none;
+}
+.cell-listing__link:hover {
+    color: var(--accent-text);
+}
 .cell-listing__cat {
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -176,6 +204,9 @@ defineProps({
 }
 .rowlink:hover {
     text-decoration: underline;
+}
+.rowlink--danger {
+    color: var(--status-hidden);
 }
 
 .foot {

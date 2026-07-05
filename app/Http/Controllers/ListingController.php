@@ -120,8 +120,8 @@ class ListingController extends Controller
         $this->storeImages($listing, $request);
 
         return $publish
-            ? redirect()->route('listings.show', $listing)
-            : redirect()->route('panel.listings');
+            ? redirect()->route('listings.show', $listing)->with('success', 'Opublikowano ogłoszenie.')
+            : redirect()->route('panel.listings')->with('success', 'Zapisano wersję roboczą.');
     }
 
     public function edit(Listing $listing): Response
@@ -178,8 +178,8 @@ class ListingController extends Controller
         $this->storeImages($listing, $request);
 
         return $publish
-            ? redirect()->route('listings.show', $listing)
-            : redirect()->route('panel.listings');
+            ? redirect()->route('listings.show', $listing)->with('success', 'Zapisano zmiany.')
+            : redirect()->route('panel.listings')->with('success', 'Zapisano jako robocze.');
     }
 
     public function end(Listing $listing): RedirectResponse
@@ -189,7 +189,7 @@ class ListingController extends Controller
 
         $listing->update(['status' => ListingStatus::Ended]);
 
-        return back();
+        return back()->with('success', 'Zakończono ogłoszenie.');
     }
 
     public function reactivate(Listing $listing): RedirectResponse
@@ -202,7 +202,7 @@ class ListingController extends Controller
             'published_at' => $listing->published_at ?? now(),
         ]);
 
-        return back();
+        return back()->with('success', 'Ogłoszenie jest znów aktywne.');
     }
 
     public function destroy(Listing $listing): RedirectResponse
@@ -218,7 +218,7 @@ class ListingController extends Controller
 
         $listing->delete();
 
-        return back();
+        return back()->with('success', 'Usunięto ogłoszenie.');
     }
 
     /**

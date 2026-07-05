@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/ogloszenia', [ListingController::class, 'store'])->name('listings.store');
     Route::get('/ogloszenia/{listing}/edytuj', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/ogloszenia/{listing}', [ListingController::class, 'update'])->name('listings.update');
+    Route::patch('/ogloszenia/{listing}/zakoncz', [ListingController::class, 'end'])->name('listings.end');
+    Route::patch('/ogloszenia/{listing}/wznow', [ListingController::class, 'reactivate'])->name('listings.reactivate');
+    Route::delete('/ogloszenia/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
 });
 
 // Public listing detail — kept last so it doesn't shadow /ogloszenia/... actions.

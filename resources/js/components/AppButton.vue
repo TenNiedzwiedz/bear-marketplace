@@ -73,6 +73,12 @@ const tag = computed(() => (props.href ? 'a' : 'button'));
 .btn--ghost:hover {
     color: var(--text);
 }
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
 @media (prefers-reduced-motion: reduce) {
     .btn {
         transition: none;

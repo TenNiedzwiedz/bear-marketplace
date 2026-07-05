@@ -41,6 +41,10 @@
     --accent-text: #9a600a; /* honey that stays legible as text/icons on light */
     --seller-priv: #566b4d;
     --seller-firma: #8a3140;
+    --status-active: #4f7a4a;
+    --status-draft: #8a7250;
+    --status-ended: #6f7d86;
+    --status-hidden: #a3474f;
     --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
 }
 
@@ -60,6 +64,10 @@
         --accent-text: #e7a63c; /* bright honey already reads on the dark ground */
         --seller-priv: #8ca37e;
         --seller-firma: #ce7180;
+        --status-active: #86b07e;
+        --status-draft: #c2ab86;
+        --status-ended: #9db0b8;
+        --status-hidden: #d98a92;
         --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);
     }
 }
@@ -79,6 +87,10 @@
     --accent-text: #9a600a; /* honey that stays legible as text/icons on light */
     --seller-priv: #566b4d;
     --seller-firma: #8a3140;
+    --status-active: #4f7a4a;
+    --status-draft: #8a7250;
+    --status-ended: #6f7d86;
+    --status-hidden: #a3474f;
     --shadow: 24px 30px 60px -40px rgba(33, 48, 42, 0.55);
 }
 
@@ -97,6 +109,10 @@
     --accent-text: #e7a63c;
     --seller-priv: #8ca37e;
     --seller-firma: #ce7180;
+    --status-active: #86b07e;
+    --status-draft: #c2ab86;
+    --status-ended: #9db0b8;
+    --status-hidden: #d98a92;
     --shadow: 26px 34px 66px -40px rgba(0, 0, 0, 0.7);
 }
 

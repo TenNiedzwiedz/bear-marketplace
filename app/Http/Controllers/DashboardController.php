@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\AccountType;
 use App\Enums\ListingStatus;
 use App\Enums\ReportStatus;
 use App\Models\Report;
@@ -22,36 +21,36 @@ class DashboardController extends Controller
 {
     public function overview(Request $request): Response
     {
-        $user = $this->demoUser($request->query('konto'));
+        $user = $request->user();
 
         return Inertia::render('panel/Overview', [
-            ...$this->shared($request, $user),
+            ...$this->shared($user),
             'overview' => $this->overviewData($user),
         ]);
     }
 
     public function listings(Request $request): Response
     {
-        $user = $this->demoUser($request->query('konto'));
+        $user = $request->user();
 
         return Inertia::render('panel/Listings', [
-            ...$this->shared($request, $user),
+            ...$this->shared($user),
             'listings' => $this->paginatedListings($user),
         ]);
     }
 
     public function messages(Request $request): Response
     {
-        $user = $this->demoUser($request->query('konto'));
+        $user = $request->user();
 
-        return Inertia::render('panel/Messages', $this->shared($request, $user));
+        return Inertia::render('panel/Messages', $this->shared($user));
     }
 
     public function account(Request $request): Response
     {
-        $user = $this->demoUser($request->query('konto'));
+        $user = $request->user();
 
-        return Inertia::render('panel/Account', $this->shared($request, $user));
+        return Inertia::render('panel/Account', $this->shared($user));
     }
 
     /**
@@ -59,30 +58,13 @@ class DashboardController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function shared(Request $request, User $user): array
+    private function shared(User $user): array
     {
-        $konto = $request->query('konto');
+        $user->loadMissing('companyProfile');
 
         return [
             'user' => $this->presentUser($user),
-            'konto' => in_array($konto, ['firma', 'prywatna'], true) ? $konto : null,
         ];
-    }
-
-    private function demoUser(?string $type): User
-    {
-        $query = User::query()->withCount('listings')->orderByDesc('listings_count');
-
-        if ($type === 'firma') {
-            $query->where('account_type', AccountType::Company);
-        } elseif ($type === 'prywatna') {
-            $query->where('account_type', AccountType::Private);
-        }
-
-        $user = $query->first() ?? User::query()->firstOrFail();
-        $user->load('companyProfile');
-
-        return $user;
     }
 
     /**

@@ -182,6 +182,45 @@ class ListingController extends Controller
             : redirect()->route('panel.listings');
     }
 
+    public function end(Listing $listing): RedirectResponse
+    {
+        Gate::authorize('update', $listing);
+        abort_unless($listing->status === ListingStatus::Active, 403);
+
+        $listing->update(['status' => ListingStatus::Ended]);
+
+        return back();
+    }
+
+    public function reactivate(Listing $listing): RedirectResponse
+    {
+        Gate::authorize('update', $listing);
+        abort_unless(in_array($listing->status, [ListingStatus::Ended, ListingStatus::Draft], true), 403);
+
+        $listing->update([
+            'status' => ListingStatus::Active,
+            'published_at' => $listing->published_at ?? now(),
+        ]);
+
+        return back();
+    }
+
+    public function destroy(Listing $listing): RedirectResponse
+    {
+        Gate::authorize('delete', $listing);
+
+        // Remove uploaded files first; DB image rows cascade on listing delete.
+        $listing->loadMissing('images')->images->each(function ($image): void {
+            if (! Str::startsWith($image->path, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($image->path);
+            }
+        });
+
+        $listing->delete();
+
+        return back();
+    }
+
     /**
      * @return array<string, mixed>
      */

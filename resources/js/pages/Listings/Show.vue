@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import SiteHeader from '../../components/SiteHeader.vue';
 import SiteFooter from '../../components/SiteFooter.vue';
 import SellerBadge from '../../components/SellerBadge.vue';
@@ -9,6 +9,7 @@ import AppTag from '../../components/AppTag.vue';
 import BearSeal from '../../components/BearSeal.vue';
 import SectionBlock from '../../components/SectionBlock.vue';
 import ListingCard from '../../components/ListingCard.vue';
+import ReportDialog from '../../components/ReportDialog.vue';
 
 const props = defineProps({
     listing: { type: Object, required: true },
@@ -16,8 +17,14 @@ const props = defineProps({
     related: { type: Array, default: () => [] },
 });
 
+const page = usePage();
 const active = ref(0);
 const hasImages = computed(() => props.listing.images.length > 0);
+// Signed-in visitors who don't own the listing may report it or the seller.
+const canReport = computed(() => {
+    const me = page.props.auth?.user;
+    return !!me && me.id !== props.seller.id;
+});
 </script>
 
 <template>
@@ -92,6 +99,9 @@ const hasImages = computed(() => props.listing.images.length > 0);
                     <p class="panel__note">
                         Skontaktuj się bezpośrednio ze sprzedającym. Bear nie pośredniczy w płatności.
                     </p>
+                    <div v-if="canReport" class="panel__report">
+                        <ReportDialog type="listing" :id="listing.id" :subject="listing.title" label="Zgłoś ogłoszenie" />
+                    </div>
                     <dl class="facts">
                         <div class="facts__row">
                             <dt>Lokalizacja</dt>
@@ -134,6 +144,9 @@ const hasImages = computed(() => props.listing.images.length > 0);
                         </div>
                     </dl>
                     <p v-if="seller.memberSince" class="seller__since">Na Bear od {{ seller.memberSince }}</p>
+                    <div v-if="canReport" class="seller__report">
+                        <ReportDialog type="user" :id="seller.id" :subject="seller.name" label="Zgłoś sprzedawcę" />
+                    </div>
                 </div>
             </aside>
         </div>
@@ -345,6 +358,14 @@ const hasImages = computed(() => props.listing.images.length > 0);
     font-size: 0.82rem;
     color: var(--text-soft);
     margin: 0.8rem 0 0;
+}
+.panel__report {
+    margin-top: 0.9rem;
+}
+.seller__report {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
 }
 
 /* Facts list */

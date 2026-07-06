@@ -80,8 +80,10 @@ class ListingController extends Controller
 
     public function show(Listing $listing): Response
     {
-        // Only active listings are public (see docs/zalozenia-projektowe.md, §5).
+        // Only active listings from non-blocked sellers are public
+        // (see docs/zalozenia-projektowe.md, §5).
         abort_unless($listing->status === ListingStatus::Active, 404);
+        abort_if($listing->user->isBlocked(), 404);
 
         $listing->load(['user.companyProfile', 'category.parent', 'images']);
 
@@ -209,14 +211,7 @@ class ListingController extends Controller
     {
         Gate::authorize('delete', $listing);
 
-        // Remove uploaded files first; DB image rows cascade on listing delete.
-        $listing->loadMissing('images')->images->each(function ($image): void {
-            if (! Str::startsWith($image->path, ['http://', 'https://'])) {
-                Storage::disk('public')->delete($image->path);
-            }
-        });
-
-        $listing->delete();
+        $listing->deleteWithImages();
 
         return back()->with('success', 'Usunięto ogłoszenie.');
     }

@@ -12,6 +12,9 @@ class SellerController extends Controller
 {
     public function show(User $user): Response
     {
+        // A blocked account has no public profile.
+        abort_if($user->isBlocked(), 404);
+
         $user->loadMissing('companyProfile');
 
         $listings = Listing::query()
@@ -34,6 +37,7 @@ class SellerController extends Controller
     private function presentSeller(User $user): array
     {
         return [
+            'id' => $user->id,
             'name' => $user->name,
             'type' => $user->isCompany() ? 'firma' : 'prywatna',
             'initials' => $this->initials($user->name),

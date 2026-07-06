@@ -328,6 +328,7 @@ class ListingController extends Controller
         $user = $listing->user;
 
         return [
+            'id' => $user->id,
             'name' => $user->name,
             'type' => $user->isCompany() ? 'firma' : 'prywatna',
             'memberSince' => $user->created_at?->locale('pl')->isoFormat('MMMM YYYY'),

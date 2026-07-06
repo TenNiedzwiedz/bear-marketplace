@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -31,12 +32,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'account_type' => AccountType::class,
+            'is_admin' => 'boolean',
+            'blocked_at' => 'datetime',
         ];
     }
 
     public function isCompany(): bool
     {
         return $this->account_type === AccountType::Company;
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
     }
 
     /**
@@ -56,12 +69,22 @@ class User extends Authenticatable
     }
 
     /**
-     * Reports filed by this user.
+     * Reports this user filed against others.
      *
      * @return HasMany<Report, $this>
      */
-    public function reports(): HasMany
+    public function reportsFiled(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Reports filed against this user account.
+     *
+     * @return MorphMany<Report, $this>
+     */
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'reportable');
     }
 }

@@ -1,15 +1,23 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import SiteHeader from '../../components/SiteHeader.vue';
 import SiteFooter from '../../components/SiteFooter.vue';
 import SellerBadge from '../../components/SellerBadge.vue';
 import ListingCard from '../../components/ListingCard.vue';
 import Pagination from '../../components/Pagination.vue';
 import EmptyState from '../../components/EmptyState.vue';
+import ReportDialog from '../../components/ReportDialog.vue';
 
 const props = defineProps({
     seller: { type: Object, required: true },
     listings: { type: Object, required: true },
+});
+
+const page = usePage();
+const canReport = computed(() => {
+    const me = page.props.auth?.user;
+    return !!me && me.id !== props.seller.id;
 });
 
 const countLabel = (n) => {
@@ -47,6 +55,9 @@ const countLabel = (n) => {
                         <span>Na Bear od {{ seller.memberSince }}</span>
                     </template>
                 </p>
+                <div v-if="canReport" class="profile__report">
+                    <ReportDialog type="user" :id="seller.id" :subject="seller.name" label="Zgłoś sprzedawcę" />
+                </div>
             </div>
 
             <dl v-if="seller.company" class="profile__facts">
@@ -160,6 +171,9 @@ const countLabel = (n) => {
     flex-direction: column;
     gap: 0.4rem;
     align-items: flex-start;
+}
+.profile__report {
+    margin-top: 0.3rem;
 }
 .profile__name {
     font-family: var(--font-display);

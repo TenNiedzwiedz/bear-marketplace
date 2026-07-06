@@ -13,9 +13,9 @@ Zakres pierwszej wersji (MVP) celowo pozostaje wąski: rejestracja użytkownika,
 wystawianie i przeglądanie ogłoszeń oraz podstawowe wyszukiwanie.
 
 > **Stan realizacji:** trzon serwisu (konta, ogłoszenia, przeglądanie,
-> wyszukiwanie, profile sprzedających) jest zaimplementowany. Warstwa moderacji
-> i kontaktu między stronami pozostaje do zrobienia — pełne zestawienie w
-> sekcji 7.
+> wyszukiwanie, profile sprzedających) oraz moderacja (zgłoszenia, panel
+> administratora, blokowanie kont) są zaimplementowane. Do zrobienia zostaje
+> głównie kontakt między stronami — pełne zestawienie w sekcji 7.
 
 ## 2. Odbiorcy i role
 
@@ -24,15 +24,16 @@ wystawianie i przeglądanie ogłoszeń oraz podstawowe wyszukiwanie.
 | **Gość** | Niezalogowany odwiedzający | Przeglądanie i wyszukiwanie ogłoszeń, podgląd szczegółów, profile sprzedających | ✅ |
 | **Osoba prywatna** | Zarejestrowany użytkownik indywidualny | Wystawianie, edycja i usuwanie własnych ogłoszeń | ✅ |
 | **Firma** | Zarejestrowane konto firmowe (z danymi firmy, np. NIP) | Jak osoba prywatna + oznaczenie ogłoszeń jako firmowe | ✅ |
-| **Administrator** | Obsługa serwisu | Moderacja: ukrywanie/usuwanie ogłoszeń, blokowanie kont, zarządzanie kategoriami | 🔲 |
+| **Administrator** | Obsługa serwisu | Moderacja: ukrywanie/usuwanie ogłoszeń, blokowanie kont; zarządzanie kategoriami 🔲 | 🟡 |
 
 Rozróżnienie **osoba prywatna / firma** to atrybut konta (typ konta), a nie
 osobny model użytkownika. Firma podaje dodatkowe dane (nazwa firmy, NIP,
 opcjonalnie adres), które są prezentowane przy jej ogłoszeniach.
 
-Rola **administratora** jest opisana w założeniach, lecz nie istnieje jeszcze w
-systemie — konto ma dziś wyłącznie typy `private` i `company`, bez odrębnego
-poziomu uprawnień administracyjnych.
+Rola **administratora** to flaga konta (`is_admin`), a nie osobny typ konta —
+niezależna od podziału prywatna/firma. Administrator ma dostęp do panelu
+moderacji (`/admin`); zarządzanie słownikiem kategorii z panelu jest jedynym
+elementem tej roli, którego jeszcze nie zaimplementowano.
 
 ## 3. Główne funkcjonalności (MVP)
 
@@ -73,9 +74,12 @@ Legenda stanu: ✅ zrealizowane · 🟡 częściowo · 🔲 niezrealizowane.
   i statystykami.
 
 ### Moderacja (administrator)
-- 🔲 Zgłaszanie ogłoszeń przez użytkowników (model `Report` istnieje, brak
-  interfejsu i obsługi).
-- 🔲 Ukrywanie/usuwanie ogłoszeń oraz blokowanie kont.
+- ✅ Zgłaszanie przez użytkowników — zarówno ogłoszeń, jak i kont — z wyborem
+  powodu i opisem (`/zglos`); zgłoszenia trafiają do kolejki moderacji.
+- ✅ Panel administratora (`/admin`, dostęp za flagą `is_admin`): przegląd,
+  kolejka zgłoszeń (rozpatrz/odrzuć), moderacja ogłoszeń (ukryj/przywróć/usuń)
+  oraz kont (zablokuj/odblokuj). Zablokowane konto nie loguje się, a jego
+  ogłoszenia znikają z części publicznej.
 - 🔲 Zarządzanie słownikiem kategorii (dziś kategorie powstają wyłącznie przez
   seeder deweloperski).
 
@@ -97,9 +101,9 @@ w `app/Enums/` (`AccountType`, `ListingStatus`, `ReportStatus`).
   Ogłoszenia przypisywane są zwykle do kategorii liścia.
 - **ListingImage (Zdjęcie ogłoszenia)** — należy do `Listing`; przechowuje
   ścieżkę pliku i kolejność.
-- **Report (Zgłoszenie)** — zgłoszenie ogłoszenia do moderacji; wiąże
-  `User` (zgłaszający) i `Listing`. Model gotowy, brak jeszcze przepływu
-  zgłaszania i obsługi.
+- **Report (Zgłoszenie)** — zgłoszenie do moderacji. Relacja **polimorficzna**
+  (`reportable`): przedmiotem zgłoszenia może być `Listing` **lub** `User`.
+  Wiąże też zgłaszającego (`User`), powód (enum `ReportReason`) i status.
 
 Relacje:
 - `User 1—1 CompanyProfile` (opcjonalna, tylko dla kont firmowych)
@@ -107,7 +111,7 @@ Relacje:
 - `Category 1—N Category` (self-relacja: nadrzędna → podkategorie)
 - `Category 1—N Listing`
 - `Listing 1—N ListingImage`
-- `Listing 1—N Report`
+- `Listing / User 1—N Report` (polimorficznie, przez `reportable`)
 
 ## 5. Reguły biznesowe
 
@@ -122,6 +126,14 @@ Relacje:
 - ✅ Konto firmowe wymaga utworzenia profilu firmy (`CompanyProfile`) z nazwą
   firmy oraz NIP-em. NIP jest wymagany, ale przyjmowany bez weryfikacji w
   rejestrze (patrz sekcja 7).
+- ✅ Każdy zalogowany użytkownik może zgłosić ogłoszenie lub konto do moderacji
+  (nie może zgłosić własnego); powtórne zgłoszenie tego samego wpisu jest
+  scalane.
+- ✅ Zablokowane konto (`blocked_at`) nie może się zalogować, a jego ogłoszenia
+  są wykluczone z części publicznej (`Listing::published()`), profilu
+  sprzedającego i strony szczegółów.
+- ✅ Dostęp do panelu moderacji (`/admin`) mają wyłącznie konta z flagą
+  `is_admin`; administrator nie może zablokować siebie ani innego administratora.
 
 ## 6. Założenia techniczne
 
@@ -157,11 +169,6 @@ Poniżej zebrano to, czego jeszcze nie ma, w podziale na trzy poziomy priorytetu
 ### Konieczne
 Domykają zakres MVP i są kluczowe dla bezpiecznego działania serwisu:
 
-- **Panel administratora z moderacją** — rola administratora nie istnieje w
-  systemie; brak ukrywania/usuwania ogłoszeń (status `ukryte` czeka na użycie)
-  oraz blokowania/zawieszania kont.
-- **Zgłaszanie ogłoszeń** — model `Report` jest gotowy, ale brakuje formularza
-  zgłoszenia i obsługi zgłoszeń po stronie moderacji.
 - **Kontakt ze sprzedającym** — przycisk „Napisz do sprzedającego" na stronie
   ogłoszenia jest nieaktywny; nie zbieramy danych kontaktowych ani nie mamy
   mechanizmu kontaktu, co jest rdzeniem wartości tablicy ogłoszeń.
@@ -174,7 +181,8 @@ Istotne dla dojrzałej wersji, ale nieblokujące uruchomienia MVP:
   placeholderem.
 - **Weryfikacja adresu e-mail** przy rejestracji.
 - **Zarządzanie kategoriami** z panelu administratora (obecnie kategorie
-  powstają wyłącznie przez seeder deweloperski).
+  powstają wyłącznie przez seeder deweloperski) — ostatni brakujący element roli
+  administratora.
 - **Ulubione / obserwowane ogłoszenia.**
 
 ### Nice to have

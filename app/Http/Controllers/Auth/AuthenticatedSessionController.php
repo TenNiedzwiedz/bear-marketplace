@@ -30,6 +30,14 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        if ($request->user()->isBlocked()) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'To konto zostało zablokowane.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('panel.overview'))->with('success', 'Zalogowano.');

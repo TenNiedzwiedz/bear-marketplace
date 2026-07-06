@@ -113,9 +113,12 @@ const hasImages = computed(() => props.listing.images.length > 0);
                         <BearSeal :size="42" :ring="false" />
                         <div>
                             <SellerBadge :type="seller.type" />
-                            <p class="seller__name">{{ seller.name }}</p>
+                            <p class="seller__name">
+                                <Link :href="`/sprzedawca/${seller.id}`" class="seller__link">{{ seller.name }}</Link>
+                            </p>
                         </div>
                     </div>
+                    <Link :href="`/sprzedawca/${seller.id}`" class="seller__all">Zobacz wszystkie ogłoszenia sprzedającego</Link>
                     <dl v-if="seller.company" class="facts">
                         <div class="facts__row">
                             <dt>Firma</dt>
@@ -379,6 +382,26 @@ const hasImages = computed(() => props.listing.images.length > 0);
     font-weight: 600;
     font-size: 1.1rem;
     margin: 0.35rem 0 0;
+}
+.seller__link {
+    color: inherit;
+    text-decoration: none;
+}
+.seller__link:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+}
+.seller__all {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.03em;
+    color: var(--accent-text);
+    text-decoration: none;
+}
+.seller__all:hover {
+    text-decoration: underline;
 }
 .seller__since {
     font-family: var(--font-mono);

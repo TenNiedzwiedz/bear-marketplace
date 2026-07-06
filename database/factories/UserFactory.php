@@ -55,4 +55,24 @@ class UserFactory extends Factory
             'account_type' => AccountType::Company,
         ]);
     }
+
+    /**
+     * A staff account with access to the moderation panel.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * A blocked account: cannot sign in, hidden from public pages.
+     */
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'blocked_at' => now(),
+        ]);
+    }
 }

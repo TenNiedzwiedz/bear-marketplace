@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\SellerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,6 +13,9 @@ Route::get('/', HomeController::class);
 
 // Public listing browsing.
 Route::get('/ogloszenia', [ListingController::class, 'index'])->name('listings.index');
+
+// Public seller profile with their active listings.
+Route::get('/sprzedawca/{user}', [SellerController::class, 'show'])->name('sellers.show');
 
 // Guest-only auth screens.
 Route::middleware('guest')->group(function () {

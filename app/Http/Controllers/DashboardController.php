@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ListingStatus;
 use App\Enums\ReportStatus;
+use App\Models\Listing;
 use App\Models\Report;
 use App\Models\User;
 use App\Support\ListingCardPresenter;
@@ -119,7 +120,7 @@ class DashboardController extends Controller
 
         $inModeration = Report::query()
             ->where('status', ReportStatus::Pending)
-            ->whereHas('listing', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHasMorph('reportable', Listing::class, fn ($q) => $q->where('user_id', $user->id))
             ->count();
 
         return [

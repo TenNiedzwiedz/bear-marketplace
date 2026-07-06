@@ -29,6 +29,7 @@ const user = computed(() => page.props.auth?.user ?? null);
 
             <div class="site-header__actions">
                 <template v-if="user">
+                    <Link v-if="user.isAdmin" href="/admin" class="admin-link">Moderacja</Link>
                     <Link href="/panel" class="account">{{ user.name }}</Link>
                     <Link href="/wyloguj" method="post" as="button" type="button" class="logout">Wyloguj</Link>
                 </template>
@@ -133,6 +134,20 @@ const user = computed(() => page.props.auth?.user ?? null);
 }
 .logout:hover {
     color: var(--text);
+}
+.admin-link {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    color: var(--seller-firma);
+    border: 1px solid color-mix(in srgb, var(--seller-firma) 40%, transparent);
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.admin-link:hover {
+    background: color-mix(in srgb, var(--seller-firma) 12%, transparent);
 }
 
 @media (max-width: 860px) {

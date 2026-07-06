@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\ReportReason;
 use App\Enums\ReportStatus;
 use Database\Factories\ReportFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-#[Fillable(['listing_id', 'user_id', 'reason', 'description', 'status'])]
+#[Fillable(['user_id', 'reason', 'description', 'status'])]
 class Report extends Model
 {
     /** @use HasFactory<ReportFactory> */
@@ -21,16 +23,19 @@ class Report extends Model
     protected function casts(): array
     {
         return [
+            'reason' => ReportReason::class,
             'status' => ReportStatus::class,
         ];
     }
 
     /**
-     * @return BelongsTo<Listing, $this>
+     * The reported subject — a Listing or a User.
+     *
+     * @return MorphTo<Model, $this>
      */
-    public function listing(): BelongsTo
+    public function reportable(): MorphTo
     {
-        return $this->belongsTo(Listing::class);
+        return $this->morphTo();
     }
 
     /**
@@ -38,8 +43,8 @@ class Report extends Model
      *
      * @return BelongsTo<User, $this>
      */
-    public function user(): BelongsTo
+    public function reporter(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

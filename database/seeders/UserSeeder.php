@@ -14,6 +14,11 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Known logins for manual testing.
+        User::factory()->admin()->create([
+            'name' => 'Admin Bear',
+            'email' => 'admin@example.com',
+        ]);
+
         User::factory()->create([
             'name' => 'Jan Kowalski',
             'email' => 'test@example.com',

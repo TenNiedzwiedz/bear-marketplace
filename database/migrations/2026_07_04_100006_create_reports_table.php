@@ -10,9 +10,14 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('listing_id')->constrained()->cascadeOnDelete();
+            // What is being reported: a listing or a user account. The morph
+            // type stores a short alias ('listing' | 'user') via the morph map
+            // registered in AppServiceProvider.
+            $table->morphs('reportable');
             // Reporter; kept nullable so a report survives the reporter's deletion.
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            // 'spam' | 'prohibited' | 'fraud' | 'offensive' | 'other' — see
+            // App\Enums\ReportReason.
             $table->string('reason');
             $table->text('description')->nullable();
             // 'pending' | 'resolved' | 'dismissed' — see App\Enums\ReportStatus.
